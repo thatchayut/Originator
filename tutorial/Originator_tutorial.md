@@ -400,17 +400,17 @@ If *plot* is set as TRUE, the following plots will be generated to the the outpu
 1.  UMAP plot comparing query and reference data
 2.  Heatmap of the distance between each cluster identified by Originator. The higher values implies the further distance from the reference data, inferring in tissue-resident immune cell cluster.
 
-![UMAP plot comparing query and reference data of T-cells](screenshot/T-cell_UMAP_annotation_query_ref.PNG)
+![UMAP plot comparing query and reference data of T-cells](image/plots/T-cell_UMAP_annotation_query_ref.PNG)
 
-![Heatmap of the distance between query and reference T-cells](./screenshot/T-cell_UMAP_d10_query_ref_dist_median.PNG)
+![Heatmap of the distance between query and reference T-cells](image/plots/T-cell_UMAP_d10_query_ref_dist_median.PNG)
 
-![UMAP plot comparing query and reference data of monocytes](screenshot/monocyte_UMAP_annotation_query_ref.PNG)
+![UMAP plot comparing query and reference data of monocytes](image/plots/monocyte_UMAP_annotation_query_ref.PNG)
 
-![Heatmap of the distance between query and reference monocytes](./screenshot/monocyte_UMAP_d10_query_ref_dist_median.PNG)
+![Heatmap of the distance between query and reference monocytes](image/plots/monocyte_UMAP_d10_query_ref_dist_median.PNG)
 
-![UMAP plot comparing query and reference data of B-cells](screenshot/B-cell_UMAP_annotation_query_ref.PNG)
+![UMAP plot comparing query and reference data of B-cells](image/plots/B-cell_UMAP_annotation_query_ref.PNG)
 
-![Heatmap of the distance between query and reference B-cells](./screenshot/B-cell_UMAP_d10_query_ref_dist_median.PNG)
+![Heatmap of the distance between query and reference B-cells](image/plots/B-cell_UMAP_d10_query_ref_dist_median.PNG)
 
 Combine Orignator results from different immune cell types together.
 
