@@ -1,0 +1,202 @@
+---
+title: "Originator"
+author: "Lana Garmire Group"
+date: "March 26, 2024"
+output:
+  html_document: default
+  'html_document: keep_md: true': default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Blood and Tissue-resident Identification using Originator
+
+Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood contamination in sample preparation. In this tutorial, we'll use the demo data containing the mixture of blood and tissue-resident immune cells to show that Originator can successfully separate this mixture into blood and tissue-resident immune cells.
+
+### Install the package
+```{r install_package}
+remotes::install_github("thatchayut/Originator/Originator/")
+
+```
+
+### Prepare input data for Originator
+Originator requires the user to provide:  
+
+1. Seurat object for query data
+2. Seurat object containing the integration of query and reference data.
+
+```{r load_query}
+library(originator)
+library(Seurat)
+
+###### Prepare a query data
+data_TB_annotation <- readRDS("E:/Tays_workspace/data/demo_query.rds")
+
+head(data_TB_annotation@meta.data)
+
+DimPlot(data_TB_annotation, group.by = "final_annotation", split.by = "origin_groundtruth")
+
+```
+
+
+```{r load_query_ref_integrated}
+###### Prepare the integrated of the query data and the reference data
+# This step can be done using data integration step provided by Seurat. 
+wholeblood.integrated <- readRDS("E:/Tays_workspace/Demultiplexing_PDAC_new_analysis/artificial_tissue_blood_mixing_wholeblood_ref/results/wholeblood_immune_withSimulatedData_integrated_forTBannotation_noNKcellTissueBlood.rds")
+
+head(wholeblood.integrated@meta.data)
+```
+
+Originator requires the integrated dataset to explicitly specify *Ref <celltype>* and *Query <celltype>* in the metadata column *annotation_query_ref*. We'll prepare the integrated dataset to meet the criteria.
+```{r prepare_query_ref_integrated_2}
+# Define query and reference on common immune cell types
+## Query side: T-cell, B-cell, Monocyte
+## Reference side: T-cell, B cell, monocyte
+
+list_common_immune_query <- c("T-cell", "B-cell", "Monocyte")
+list_common_immune_reference <- c("T-cell", "B cell", "monocyte")
+
+
+wholeblood.integrated_meta <- wholeblood.integrated@meta.data
+
+wholeblood.integrated_meta$annotation_query_ref <- rep(NA, nrow(wholeblood.integrated_meta))
+
+wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$final_annotation == "T-cell"] <- "Query T-cell"
+wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$final_annotation == "B-cell"] <- "Query B-cell"
+wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$final_annotation == "Monocyte"] <- "Query monocyte"
+
+wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$level1_annotation == "T-cell"] <- "Ref T-cell"
+wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$level1_annotation == "B cell"] <- "Ref B-cell"
+wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$level1_annotation == "monocyte"] <- "Ref monocyte"
+
+wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$final_annotation == "T-cell"] <- "Query"
+wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$final_annotation == "B-cell"] <- "Query"
+wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$final_annotation == "Monocyte"] <- "Query"
+
+wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$level1_annotation == "T-cell"] <- "Ref"
+wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$level1_annotation == "B cell"] <- "Ref"
+wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$level1_annotation == "monocyte"] <- "Ref"
+
+wholeblood.integrated.common.immune <- wholeblood.integrated
+
+wholeblood.integrated.common.immune@meta.data <-  wholeblood.integrated_meta
+
+list_annotation_query_ref <- unlist(unique(wholeblood.integrated.common.immune$annotation_query_ref))
+list_annotation_query_ref <-  list_annotation_query_ref[is.na(list_annotation_query_ref) == FALSE]
+
+# Subset to get only cell types of interests
+wholeblood.integrated.common.immune <- subset(wholeblood.integrated.common.immune,
+                                              subset = annotation_query_ref %in% list_annotation_query_ref)
+
+```
+
+### Perform blood and tissue-immune cell identification using Originator
+
+```{r TB_annotation}
+tb_annotation_tcell <- originator(data = wholeblood.integrated.common.immune, query_cell_type = "T-cell", plot = TRUE, output_dir = "./")
+
+tb_annotation_monocyte <- originator(data = wholeblood.integrated.common.immune, query_cell_type = "monocyte", plot = TRUE, output_dir = "./")
+
+tb_annotation_bcell <- originator(data = wholeblood.integrated.common.immune, query_cell_type = "B-cell", plot = TRUE, output_dir = "./")
+
+```
+
+Originator returns dataframe (N x 2; N = number of query samples): Blood and tissue-resident immune cell identification result is stored in *origin_tb*. Row names are query sample IDs. 
+
+If *plot* is set as TRUE, the following plots will be generated to the the output directory specified in *output_dir*.
+
+1. UMAP plot comparing query and reference data
+2. Heatmap of the distance between each cluster identified by Originator. The higher values implies the further distance from the reference data, inferring in tissue-resident immune cell cluster.
+
+![UMAP plot comparing query and reference data of T-cells](screenshot/T-cell_UMAP_annotation_query_ref.PNG)
+
+![Heatmap of the distance between query and reference T-cells](./screenshot/T-cell_UMAP_d10_query_ref_dist_median.PNG)
+
+![UMAP plot comparing query and reference data of monocytes](screenshot/monocyte_UMAP_annotation_query_ref.PNG)
+
+![Heatmap of the distance between query and reference monocytes](./screenshot/monocyte_UMAP_d10_query_ref_dist_median.PNG)
+
+![UMAP plot comparing query and reference data of B-cells](screenshot/B-cell_UMAP_annotation_query_ref.PNG)
+
+![Heatmap of the distance between query and reference B-cells](./screenshot/B-cell_UMAP_d10_query_ref_dist_median.PNG)
+
+
+
+Combine Orignator results from different immune cell types together.
+```{r TB_interpret, echo=FALSE}
+##collect all data
+temp_meta <- NULL
+temp_meta <- rbind(temp_meta, tb_annotation_tcell)
+temp_meta <- rbind(temp_meta, tb_annotation_monocyte)
+temp_meta <- rbind(temp_meta, tb_annotation_bcell)
+```
+
+### Blood and tissue-resident immune cell assignment
+
+Add the Originator outputs back to the input Seurat object to perform further analysis.
+
+```{r TB_assignment}
+data_TB_annotation_meta <- data_TB_annotation@meta.data
+
+### tissue and blood origin assignment
+data_TB_annotation_meta_1 <- data_TB_annotation_meta[!(row.names(data_TB_annotation_meta) %in% row.names(temp_meta)), ]
+data_TB_annotation_meta_1$TB_origin_wholeblood <- rep("Undetermined", dim(data_TB_annotation_meta_1)[1])
+
+data_TB_annotation_meta_1$TB_origin_wholeblood[data_TB_annotation_meta_1$compartment == "Non-immune"] <- "Tissue"
+
+data_TB_annotation_meta_2 <- data_TB_annotation_meta_1[, "TB_origin_wholeblood", drop = F]
+
+temp_meta <- temp_meta[, "origin_tb", drop = F]
+colnames(temp_meta) <- "TB_origin_wholeblood"
+
+temp_meta <- rbind(temp_meta, data_TB_annotation_meta_2)
+
+temp_meta <- temp_meta[row.names(data_TB_annotation_meta), , drop = F]
+
+data_TB_annotation[["TB_origin_wholeblood"]] <- temp_meta$TB_origin_wholeblood
+```
+
+#### Comparing ground truth and Originator results
+
+##### Visualization of all cell types
+
+```{r TB_visualization_all_1}
+DimPlot(data_TB_annotation, group.by = "origin_groundtruth")
+```
+
+```{r TB_visualization_all_2}
+DimPlot(data_TB_annotation, group.by = "TB_origin_wholeblood")
+```
+
+##### Visualization of T-cells
+
+```{r TB_visualization_tcell}
+data_TB_annotation_tcell <- subset(data_TB_annotation, subset = final_annotation == "T-cell")
+
+DimPlot(data_TB_annotation_tcell, group.by = "origin_groundtruth")
+DimPlot(data_TB_annotation_tcell, group.by = "TB_origin_wholeblood")
+```
+
+##### Visualization of monocytes
+
+```{r TB_visualization_monocyte}
+data_TB_annotation_monocyte <- subset(data_TB_annotation, subset = final_annotation == "Monocyte")
+
+DimPlot(data_TB_annotation_monocyte, group.by = "origin_groundtruth")
+DimPlot(data_TB_annotation_monocyte, group.by = "TB_origin_wholeblood")
+```
+
+##### Visualization of B-cells
+
+```{r TB_visualization_bcell}
+data_TB_annotation_Bcell <- subset(data_TB_annotation, subset = final_annotation == "B-cell")
+
+DimPlot(data_TB_annotation_Bcell, group.by = "origin_groundtruth")
+DimPlot(data_TB_annotation_Bcell, group.by = "TB_origin_wholeblood")
+```
+
+```{r sessionInfo}
+sessionInfo()
+```
