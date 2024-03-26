@@ -18,7 +18,8 @@ Install Originator
 remotes::install_github("thatchayut/Originator/Originator/")
 ```
 # Tutorial
-
+- [Perform blood and tissue-resident immune cell identification using Originator]()
+- [(OPTIONAL) Perform maternal and fetal origin identification in placenta tissues using Originator]()
 
 
 ## Contributors
