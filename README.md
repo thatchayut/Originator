@@ -6,13 +6,13 @@ Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood cont
 
 # Installation
 Install dependencies
-``R
+```R
 install.packages("tidyr")
 install.packages('Seurat')
 install.packages("RColorBrewer")
 install.packages("matrixStats")
 ```
 Install Originator
-``R
+```R
 remotes::install_github("thatchayut/Originator/Originator/")
 ```
