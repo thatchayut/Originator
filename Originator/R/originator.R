@@ -52,13 +52,13 @@ originator <- function(data, query_cell_type, plot = FALSE, output_dir = NA) {
   
   ########### Prepare colors
   my.break1 <- seq(0, 15)
-  my.color1 <- grDevices::colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(length(my.break1))
+  my.color1 <- grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(n = 7, name = "RdYlBu")))(length(my.break1))
   
   my.break2 <- seq(0, 20)
-  my.color2 <- grDevices::colorRampPalette(rev(brewer.pal(n = 14, name = "RdYlBu")))(length(my.break1))
+  my.color2 <- grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(n = 14, name = "RdYlBu")))(length(my.break1))
   
   my.break3 <- seq(0, 15)
-  my.color3 <- grDevices::colorRampPalette(rev(brewer.pal(n = 4, name = "RdYlBu")))(length(my.break1))
+  my.color3 <- grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(n = 4, name = "RdYlBu")))(length(my.break1))
   
   
   ########### Perform Blood and tissue-resident immune cell separation
