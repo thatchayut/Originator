@@ -395,10 +395,10 @@ tb_annotation_bcell <- originator(data = wholeblood.integrated.common.immune, qu
 
 Originator returns dataframe (N x 2; N = number of query samples): Blood and tissue-resident immune cell identification result is stored in *origin\_tb*. Row names are query sample IDs.
 
-If *plot* is set as TRUE, the following plots will be generated to the the output directory specified in *output\_dir*.
+If *plot* is set as TRUE, the following plots will be generated to the output directory specified in *output\_dir*.
 
 1.  UMAP plot comparing query and reference data
-2.  Heatmap of the distance between each cluster identified by Originator. The higher values implies the further distance from the reference data, inferring in tissue-resident immune cell cluster.
+2.  Heatmap of the distance between each cluster identified by Originator. The higher values imply a further distance from the reference data, inferring tissue-resident immune cell cluster.
 
 ##### UMAP plot comparing query and reference data of T-cells
 ![UMAP plot comparing query and reference data of T-cells](../image/plots/T-cell_UMAP_annotation_query_ref.PNG)
