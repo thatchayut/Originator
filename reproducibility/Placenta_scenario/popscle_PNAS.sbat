@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#SBATCH --job-name=popscle_PNAS             ## Name of the job for the scheduler
+                                       ## make the directive = #SBATCH, not ##SBATCH 
+#SBATCH --nodes=1                      ## number of nodes you are requesting
+#SBATCH --ntasks-per-node=1            ## how many cores do you want to reserve
+#SBATCH --time=4-23:30:00              ## Maximum length of time you are reserving the 
+                                       ## resources for 
+                                       ## (if job ends sooner, bill is based on time used)
+#SBATCH --mem-per-cpu=70g               ## Memory requested per core
+#SBATCH --mail-user=qhhuang@umich.edu  ## send email notifications to umich email listed
+#SBATCH --mail-type=END                ## when to send email (standard values are:
+                                       ## NONE, BEGIN, END, FAIL, REQUEUE, ALL.  
+                                       ## (See documentation for others)
+#SBATCH --output=./%x-%j               ## send output and error info to the file listed
+                                       ##(optional: different name format than default) 
+
+# I recommend using the following lines to write output to indicate your script is working
+if [[ $SLURM_JOB_NODELIST ]] ; then
+   echo "Running on"
+   scontrol show hostnames $SLURM_JOB_NODELIST
+fi
+
+# With SLURM, you can load your modules in the SBATCH script
+
+#  Put your job commands after this line 
+
+module load singularity
+
+cd /home/qhhuang/scRNA_PE/Analysis_11_22_2021/
+
+### for i in {1..22} X Y;do echo "${i} chr${i}";done > rename_chrm.txt
+### /home/qhhuang/scRNA_PE/Analysis_11_22_2021/bcftools/bcftools annotate filterbyMAF.vcf.gz --r  ename-chrs rename_chrm.txt -Oz -o filterbyMAF_renamed.vcf.gz
+
+###PNAS PE1
+
+for ID in PE2 PE3 PE4
+do
+  ### sort vcf and bam file order
+  /home/qhhuang/scRNA_PE/Analysis_11_22_2021/popscle_helper_tools/sort_vcf_same_as_bam.sh \
+  /home/yhdu/hongkong/ALIGNMENT/${ID}/${ID}.bam \
+  /home/qhhuang/scRNA_PE/Analysis_11_22_2021/filterbyMAF_renamed.vcf.gz \
+  v \
+    > /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}.sorted_as_in_bam.vcf
+  
+  cp /home/yhdu/hongkong/ALIGNMENT/${ID}/filtered_gene_bc_matrices/hg19/barcodes.tsv /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}_barcodes.tsv
+  ### Filter bam for pile up
+  /home/qhhuang/scRNA_PE/Analysis_11_22_2021/popscle_helper_tools/filter_bam_file_for_popscle_dsc_pileup.sh \
+      /home/yhdu/hongkong/ALIGNMENT/${ID}/${ID}.bam \
+      /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}_barcodes.tsv \
+      /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}.sorted_as_in_bam.vcf \
+      /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}_to_demultiplex.filter_bam_file_for_popscle_dsc_pileup.bam
+  
+  # Use filtered BAM file for dsc-pileup.
+  singularity run popscle_latest.sif "dsc-pileup \
+      --sam /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}_to_demultiplex.filter_bam_file_for_popscle_dsc_pileup.bam \
+      --vcf /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}.sorted_as_in_bam.vcf \
+      --group-list /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}_barcodes.tsv \
+      --out /home/qhhuang/scRNA_PE/Analysis_11_22_2021/result/${ID}_to_demultiplex.pileup"
+  
+  # freemuxlet
+  singularity run popscle_latest.sif "freemuxlet \
+      --plp /home/qhhuang/scRNA_PE/Analysis_11_22_2021/result/${ID}_to_demultiplex.pileup --nsample 2 --out /home/qhhuang/scRNA_PE/Analysis_11_22_2021/result/${ID}_freemuxlet.pooled"
+      
+  mv /home/qhhuang/scRNA_PE/Analysis_11_22_2021/result/${ID}_freemuxlet.pooled.clust1.samples.gz /home/qhhuang/scRNA_PE/Analysis_11_22_2021/result/essential_result/${ID}_freemuxlet.pooled.clust1.samples.gz
+  rm /home/qhhuang/scRNA_PE/Analysis_11_22_2021/result/${ID}*.*
+  rm /home/qhhuang/scRNA_PE/Analysis_11_22_2021/${ID}*.*
+done
