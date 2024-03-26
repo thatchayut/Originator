@@ -2,8 +2,8 @@
 
 Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood contamination in sample preparation. Moreover, some tissue samples comprise cells of different genetic makeups. These issues require rigorous preprocessing and cell filtering prior to the downstream functional analysis. We propose a new computational framework, Originator, which deciphers single cells into different genetic origins and separates blood cells from tissue-resident cells in the scRNA-Seq data. We show that this pipeline improves downstream data analysis, exemplified by the pancreatic ductal adenocarcinoma and placenta tissues.
 
-<img src="./image/originator_pipeline.png" alt="originator_pipeline" width="500"/>
-![originator_pipeline]("./image/originator_pipeline.png")
+![alt text](image/originator_pipeline.png)
+
 
 # Installation
 Install dependencies
