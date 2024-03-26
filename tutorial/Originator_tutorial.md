@@ -88,7 +88,7 @@ head(data_TB_annotation@meta.data)
 DimPlot(data_TB_annotation, group.by = "final_annotation", split.by = "origin_groundtruth")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/load_query-1.png)
+![UMAP query data](../image/plots/load_query-1.png)
 
 ``` r
 ###### Prepare the integrated of the query data and the reference data
@@ -400,16 +400,22 @@ If *plot* is set as TRUE, the following plots will be generated to the the outpu
 1.  UMAP plot comparing query and reference data
 2.  Heatmap of the distance between each cluster identified by Originator. The higher values implies the further distance from the reference data, inferring in tissue-resident immune cell cluster.
 
+##### UMAP plot comparing query and reference data of T-cells
 ![UMAP plot comparing query and reference data of T-cells](../image/plots/T-cell_UMAP_annotation_query_ref.PNG)
 
+##### Heatmap of the distance between query and reference T-cells
 ![Heatmap of the distance between query and reference T-cells](../image/plots/T-cell_UMAP_d10_query_ref_dist_median.PNG)
 
+##### UMAP plot comparing query and reference data of monocytes
 ![UMAP plot comparing query and reference data of monocytes](../image/plots/monocyte_UMAP_annotation_query_ref.PNG)
 
+##### Heatmap of the distance between query and reference monocytes
 ![Heatmap of the distance between query and reference monocytes](../image/plots/monocyte_UMAP_d10_query_ref_dist_median.PNG)
 
+##### UMAP plot comparing query and reference data of B-cells
 ![UMAP plot comparing query and reference data of B-cells](../image/plots/B-cell_UMAP_annotation_query_ref.PNG)
 
+##### Heatmap of the distance between query and reference B-cells
 ![Heatmap of the distance between query and reference B-cells](../image/plots/B-cell_UMAP_d10_query_ref_dist_median.PNG)
 
 Combine Orignator results from different immune cell types together.
@@ -447,13 +453,13 @@ data_TB_annotation[["TB_origin_wholeblood"]] <- temp_meta$TB_origin_wholeblood
 DimPlot(data_TB_annotation, group.by = "origin_groundtruth")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_all_1-1.png)
+![UMAP of ground truth of all cell types](../image/plots/TB_visualization_all_1-1.png)
 
 ``` r
 DimPlot(data_TB_annotation, group.by = "TB_origin_wholeblood")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_all_2-1.png)
+![UMAP of Originator results of all cell types](../image/plots//TB_visualization_all_2-1.png)
 
 ##### Visualization of T-cells
 
@@ -463,13 +469,13 @@ data_TB_annotation_tcell <- subset(data_TB_annotation, subset = final_annotation
 DimPlot(data_TB_annotation_tcell, group.by = "origin_groundtruth")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_tcell-1.png)
+![UMAP of ground truth of T-cells](../image/plots/TB_visualization_tcell-1.png)
 
 ``` r
 DimPlot(data_TB_annotation_tcell, group.by = "TB_origin_wholeblood")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_tcell-2.png)
+![UMAP of Originator results of T-cells](../image/plots/TB_visualization_tcell-2.png)
 
 ##### Visualization of monocytes
 
@@ -479,13 +485,13 @@ data_TB_annotation_monocyte <- subset(data_TB_annotation, subset = final_annotat
 DimPlot(data_TB_annotation_monocyte, group.by = "origin_groundtruth")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_monocyte-1.png)
+![UMAP of ground truth of monocytes](../image/plots/TB_visualization_monocyte-1.png)
 
 ``` r
 DimPlot(data_TB_annotation_monocyte, group.by = "TB_origin_wholeblood")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_monocyte-2.png)
+![UMAP of originator results of monocytes](../image/plots/TB_visualization_monocyte-2.png)
 
 ##### Visualization of B-cells
 
@@ -495,13 +501,13 @@ data_TB_annotation_Bcell <- subset(data_TB_annotation, subset = final_annotation
 DimPlot(data_TB_annotation_Bcell, group.by = "origin_groundtruth")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_bcell-1.png)
+![UMAP of ground truth of B-cells](../image/plots/TB_visualization_bcell-1.png)
 
 ``` r
 DimPlot(data_TB_annotation_Bcell, group.by = "TB_origin_wholeblood")
 ```
 
-![](Originator_tutorial_files/figure-markdown_github/TB_visualization_bcell-2.png)
+![UMAP of Originator results of B-cells](../image/plots/TB_visualization_bcell-2.png)
 
 ``` r
 sessionInfo()
