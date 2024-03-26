@@ -398,7 +398,7 @@ Originator returns dataframe (N x 2; N = number of query samples): Blood and tis
 If *plot* is set as TRUE, the following plots will be generated to the output directory specified in *output\_dir*.
 
 1.  UMAP plot comparing query and reference data
-2.  Heatmap of the distance between each cluster identified by Originator. The higher values imply a further distance from the reference data, inferring tissue-resident immune cell cluster.
+2.  Heatmap of the distance between each cluster identified by Originator. The higher values imply a further distance from the reference data, inferring a tissue-resident immune cell cluster. On the other hand, the lower values imply a closer distance to reference data, inferring a blood immune cell cluster.
 
 ##### UMAP plot comparing query and reference data of T-cells
 ![UMAP plot comparing query and reference data of T-cells](../image/plots/T-cell_UMAP_annotation_query_ref.PNG)
