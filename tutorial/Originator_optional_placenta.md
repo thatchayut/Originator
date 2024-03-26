@@ -425,4 +425,4 @@ DimPlot(PL.integrated_2, reduction = "umap", group.by = "annotation", split.by =
 dev.off()
 ```
 
-The output from here will be further used to perform blood and tissue-immune cell identification
+The output from here will be further used to perform blood and tissue-immune cell identification.
