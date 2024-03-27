@@ -6,7 +6,7 @@ Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood cont
 ### Install the package
 
 ``` r
-remotes::install_github("thatchayut/Originator/Originator/")
+remotes::install_github("lanagarmire/Originator/Originator/")
 ```
 
     ## Skipping install of 'originator' from a github remote, the SHA1 (adc74487) has not changed since last install.
