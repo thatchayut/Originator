@@ -92,6 +92,8 @@ DimPlot(data_TB_annotation, group.by = "final_annotation", split.by = "origin_gr
 
 ![UMAP query data](../image/plots/load_query-1.png)
 
+The next step will require the integrated data of the query and the reference data. As this step may require high computational cost depending on your reference data of interest, we've provided a toy integrated data set that contains the integrated data of the toy query data and the blood scRNA-seq reference data provided by Tabula Sapiens (https://www.science.org/doi/10.1126/science.abl4896).
+
 ``` r
 ###### Prepare the integrated of the query data and the reference data
 # This step can be done using data integration step provided by Seurat. 
@@ -421,6 +423,14 @@ If *plot* is set as TRUE, the following plots will be generated to the output di
 ![Heatmap of the distance between query and reference B-cells](../image/plots/B-cell_UMAP_d10_query_ref_dist_median.PNG)
 
 Combine Orignator results from different immune cell types together.
+``` r
+##collect all data
+temp_meta <- NULL
+temp_meta <- rbind(temp_meta, tb_annotation_tcell)
+temp_meta <- rbind(temp_meta, tb_annotation_monocyte)
+temp_meta <- rbind(temp_meta, tb_annotation_bcell)
+```
+
 
 ### Blood and tissue-resident immune cell assignment
 
