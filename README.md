@@ -24,8 +24,8 @@ remotes::install_github("thatchayut/Originator/Originator/")
 
 ## Contributors
 - [Thatchayut Unjitwattana](https://github.com/thatchayut) (thatchau@umich.edu)
-- [Qianhui Huang](qhhuang@umich.edu) (qhhuang@umich.edu)
-- [Youqi Yang](youqi@umich.edu) (youqi@umich.edu)
-- [Mengtian Zhou](mtzhouzz@umich.edu) (mtzhouzz@umich.edu)
+- Qianhui Huang (qhhuang@umich.edu)
+- [Youqi Yang](https://github.com/youqiy) (youqi@umich.edu)
+- [Mengtian Zhou](https://github.com/mengtzhou) (mtzhouzz@umich.edu)
 - [Yuheng Du](https://github.com/yhdu36) (yhdu@umich.edu)
 - [Lana Garmire](https://github.com/lanagarmire) (http://garmiregroup.org/)
