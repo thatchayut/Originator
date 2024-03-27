@@ -6,7 +6,7 @@ Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood cont
 ### Install the package
 
 ``` r
-remotes::install_github("thatchayut/Originator/Originator/")
+remotes::install_github("lanagarmire/Originator/Originator/")
 ```
 
     ## Skipping install of 'originator' from a github remote, the SHA1 (adc74487) has not changed since last install.
@@ -18,6 +18,8 @@ Originator requires the user to provide:
 
 1.  Seurat object for query data
 2.  Seurat object containing the integration of query and reference data.
+
+Toy datasets can be downloaded from: https://figshare.com/articles/dataset/Artificially_mixing_blood_and_tissue_scRNA-seq_data/25487980
 
 ``` r
 library(originator)
@@ -43,7 +45,7 @@ library(Seurat)
 
 ``` r
 ###### Prepare a query data
-data_TB_annotation <- readRDS("E:/Tays_workspace/data/demo_query.rds")
+data_TB_annotation <- readRDS("./your_workspace/demo_query.rds")
 
 head(data_TB_annotation@meta.data)
 ```
@@ -93,7 +95,7 @@ DimPlot(data_TB_annotation, group.by = "final_annotation", split.by = "origin_gr
 ``` r
 ###### Prepare the integrated of the query data and the reference data
 # This step can be done using data integration step provided by Seurat. 
-wholeblood.integrated <- readRDS("E:/Tays_workspace/Demultiplexing_PDAC_new_analysis/artificial_tissue_blood_mixing_wholeblood_ref/results/wholeblood_immune_withSimulatedData_integrated_forTBannotation_noNKcellTissueBlood.rds")
+wholeblood.integrated <- readRDS("./your_workspace/demo_wholeblood_query_integrated.rds")
 
 head(wholeblood.integrated@meta.data)
 ```

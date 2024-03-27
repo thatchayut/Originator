@@ -15,7 +15,7 @@ install.packages("matrixStats")
 ```
 Install Originator
 ```R
-remotes::install_github("thatchayut/Originator/Originator/")
+remotes::install_github("lanagarmire/Originator/Originator/")
 ```
 # Tutorial
 - [Perform blood and tissue-resident immune cell identification using Originator](tutorial/Originator_tutorial.md)
