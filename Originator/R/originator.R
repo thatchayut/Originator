@@ -95,8 +95,13 @@ originator <- function(data, query_cell_type, plot = FALSE, output_dir = NA) {
   query_cid <- row.names(temp1[temp1$source == "Query", ])
   
   temp2 <- as.matrix(temp1[, 3:12])
-  temp3 <- as.matrix(dist(temp2))
-  temp4 <- temp3[query_cid, ref_cid]
+  query_umap <- temp2[query_cid, ]
+  ref_umap <- temp2[ref_cid, ]
+  dist_matrix <-
+    sqrt(outer(rowSums(query_umap ^ 2), rowSums(ref_umap ^ 2), "+") - 2 * tcrossprod(query_umap, ref_umap))
+  rownames(dist_matrix) <- query_cid
+  colnames(dist_matrix) <- ref_cid
+  temp4 <- dist_matrix
   
   # Perform clustering
   print("#### Perform clustering")
