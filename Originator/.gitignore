@@ -1,1 +1,6 @@
 .Rproj.user
+/renv
+renv.lock
+
+/data
+/output
