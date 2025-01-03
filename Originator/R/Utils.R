@@ -1,10 +1,10 @@
-Utils <- new.env()
-
-Utils$runPopscle <- function(vcf_path,
-                             barcodes_path,
-                             bam_path,
-                             popscle_path,
-                             output_path = "./result") {
+runPopscle <- function(
+  vcf_path,
+  barcodes_path,
+  bam_path,
+  popscle_path,
+  output_path = "./result"
+) {
   message(paste0("PATH=", Sys.getenv("PATH")))
   cmd <- paste(
     "./exec/popscle_pnas.sh",
