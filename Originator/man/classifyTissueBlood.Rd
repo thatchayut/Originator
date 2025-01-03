@@ -12,7 +12,8 @@ classifyTissueBlood(
   use_celltype = "unified_celltype",
   into_col = "origin_tb",
   plot = T,
-  offset = -0.1
+  offset = -0.1,
+  reduction = "umap"
 )
 }
 \arguments{

@@ -20,7 +20,8 @@ classifyTissueBlood <- function(
   use_celltype = "unified_celltype",
   into_col = "origin_tb",
   plot = T,
-  offset = -0.1
+  offset = -0.1,
+  reduction = "umap"
 ) {
   mkdir(output_dir)
   # Subset cell type of interest
@@ -49,8 +50,11 @@ classifyTissueBlood <- function(
   }
 
   # Perform Blood and tissue-resident immune cell separation
-  message("Extract UMAP embeddings 1-10")
-  embed <- data@reductions[["umap"]]@cell.embeddings
+  message(paste0("Extract ", reduction, " embeddings"))
+  if (reduction == "pca") {
+    reduction <- "harmony"
+  }
+  embed <- data@reductions[[reduction]]@cell.embeddings
   # Use only cells within range to avoid cluster error
   if (length(offset) == 1) {
     offset <- rep(offset, 4)
