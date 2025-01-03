@@ -1,0 +1,47 @@
+This is an example of how to use Originator to separate tissue-resident and blood immune cells.
+
+```{r}
+library(originator)
+```
+
+Define path to query and reference data
+
+```{r}
+data_path <- "<path to annotated single cell RNA data rds file>"
+ref_path <- "<path to whole blood reference data rds file>"
+```
+
+```{r}
+data <- readRDS(data_path)
+blood <- readRDS(ref_path)
+```
+
+Match cell type annotation across query and reference data
+
+```{r}
+celltype_map_query <- list(
+  `NK_cell` = "NK-cell"
+)
+celltype_map_ref <- list(
+  `nk cell` = "NK-cell"
+)
+data <- mapCellTypes(data, "cell_type", celltype_map_query)
+blood <- mapCellTypes(blood, "level1_annotation", celltype_map_ref)
+```
+
+Use harmony to integrate query and reference
+
+```{r}
+integrated_data <- integrateBloodRef(blood, data)
+```
+
+Run Originator classification for cell types of interest
+
+```{r}
+output_path <- "<path to save outputs>"
+for (celltype in list("NK-cell")) {
+  message(celltype)
+  classifyTissueBlood(data, celltype, output_dir = output_path)
+}
+```
+
