@@ -1,7 +1,7 @@
 This is an example of how to use Originator to separate tissue-resident and blood immune cells.
 
 ```{r}
-library(originator)
+library(Originator)
 ```
 
 Define path to query and reference data
