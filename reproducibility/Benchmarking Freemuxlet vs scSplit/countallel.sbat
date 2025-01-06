@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --job-name=scSplitsubset
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=5:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+module purge
+eval "$(conda shell.bash hook)"
+conda activate originator
+export PATH=$PATH:/nfs/dcmb-lgarmire/johntao/originator/scSplit
+cd /nfs/dcmb-lgarmire/johntao/originator/subset
+
+scSplit count -v filtered_subset_norg.vcf -i subset_norg.bam -b ../comparebarcode/selected_barcodes.txt -c /nfs/dcmb-lgarmire/thatchau/demultiplexing_project/data/vcf/hg19/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5c.20130502.sites.vcf.gz -r ref_subset_filtered.csv -a alt_subset_filtered.csv -o .

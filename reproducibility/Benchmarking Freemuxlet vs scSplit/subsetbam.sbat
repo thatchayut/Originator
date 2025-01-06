@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --job-name=subsetbam
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=25:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+export PATH=$PATH:/nfs/dcmb-lgarmire/thatchau/program/subset-bam/
+subset-bam_linux --bam merged_filtered.bam --cell-barcodes ../comparebarcode/selected_barcodes.txt --out-bam ./subset.bam
+
+
+
+
+
+
