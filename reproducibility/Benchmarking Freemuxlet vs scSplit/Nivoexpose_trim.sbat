@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --job-name=trimIUA
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=5:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+module load Bioinformatics
+
+java -jar /nfs/dcmb-lgarmire/johntao/originator/trimmomatic/Trimmomatic-0.39/trimmomatic-0.39.jar \
+	PE \
+	-trimlog ./trimlog.txt \
+	SRR13806044_1.fastq SRR13806044_2.fastq \
+	out_44_1_trimmed_paired.fastq out_44_1_trimmed_unpaired.fastq \
+	out_44_2_trimmed_paired.fastq out_44_2_trimmed_unpaired.fastq \
+	ILLUMINACLIP:../IlluminaUniversalAdapter.fa:2:30:7 \
+	MINLEN:15

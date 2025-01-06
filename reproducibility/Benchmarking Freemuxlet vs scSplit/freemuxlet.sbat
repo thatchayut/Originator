@@ -1,0 +1,56 @@
+#!/bin/bash
+#SBATCH --job-name=freemuxtut
+#SBATCH --account=lgarmire
+#SBATCH --partition=batch
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=140g
+#SBATCH --time=24:00:00
+#SBATCH --mail-type=END
+#SBATCH --mail-user=johntao@umich.edu
+#SBATCH --output=./%x-%j
+
+# I recommend using the following lines to write output to indicate your script is working
+if [[ $SLURM_JOB_NODELIST ]] ; then
+   echo "Running on"
+   scontrol show hostnames $SLURM_JOB_NODELIST
+fi
+
+# With SLURM, you can load your modules in the SBATCH script
+
+#  Put your job commands after this line 
+module load singularity
+### for i in {1..22} X Y;do echo "${i} chr${i}";done > rename_chrm.txt
+### /home/qhhuang/scRNA_PE/Analysis_11_22_2021/bcftools/bcftools annotate filterbyMAF.vcf.gz --r  ename-chrs rename_chrm.txt -Oz -o filterbyMAF_renamed.vcf.gz
+
+###PNAS PE1
+
+for ID in subset
+do
+  ### sort vcf and bam file order
+  /home/qhhuang/scRNA_PE/Analysis_11_22_2021/popscle_helper_tools/sort_vcf_same_as_bam.sh \
+  /home/johntao/originator/subset/${ID}_norg.bam \
+  /home/thatchau/demultiplexing_project/data/vcf/hg19/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5c.20130502.sites.vcf.gz \
+  v \
+    > /home/johntao/originator/subset/freemuxlet/${ID}.sorted_as_in_bam.vcf
+  
+  cp /home/johntao/originator/comparebarcode/selected_barcodes.txt /home/johntao/originator/subset/freemuxlet/${ID}_barcodes.tsv
+  ### Filter bam for pile up
+  /home/qhhuang/scRNA_PE/Analysis_11_22_2021/popscle_helper_tools/filter_bam_file_for_popscle_dsc_pileup.sh \
+      /home/johntao/originator/subset/${ID}_norg.bam \
+      /home/johntao/originator/subset/freemuxlet/${ID}_barcodes.tsv \
+      /home/johntao/originator/subset/freemuxlet/${ID}.sorted_as_in_bam.vcf \
+      /home/johntao/originator/subset/freemuxlet/${ID}_to_demultiplex.filter_bam_file_for_popscle_dsc_pileup.bam
+  
+  # Use filtered BAM file for dsc-pileup.
+  singularity run ../freemuxlet/popscle_latest.sif "dsc-pileup \
+      --sam /home/johntao/originator/subset/freemuxlet/${ID}_to_demultiplex.filter_bam_file_for_popscle_dsc_pileup.bam \
+      --vcf /home/johntao/originator/subset/freemuxlet/${ID}.sorted_as_in_bam.vcf \
+      --group-list /home/johntao/originator/subset/freemuxlet/${ID}_barcodes.tsv \
+      --out /home/johntao/originator/subset/freemuxlet/${ID}_to_demultiplex.pileup"
+  
+  # freemuxlet
+  singularity run ../freemuxlet/popscle_latest.sif "freemuxlet \
+      --plp /home/johntao/originator/subset/freemuxlet/${ID}_to_demultiplex.pileup --nsample 2 --out /home/johntao/originator/subset/freemuxlet/${ID}_freemuxlet.pooled"
+      
+done

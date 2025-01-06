@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH --job-name=cellIpi
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=72:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+module load Bioinformatics
+module load cellranger
+
+cellranger count --id=cellranger_Ipi \
+	--fastqs=/nfs/dcmb-lgarmire/johntao/originator/PBMC/Ipiresis/Ipicellranger/ \
+	--sample=Ipi \
+	--create-bam=true \
+	--chemistry=SC5P-PE \
+	--transcriptome=/nfs/dcmb-lgarmire/thatchau/demultiplexing_project/data/reference_genome_cellranger/hg19/hg19

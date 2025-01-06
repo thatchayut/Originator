@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name=filterNivo
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=5:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+module load Bioinformatics 
+module load samtools
+cd /nfs/dcmb-lgarmire/johntao/originator/filterbam_removedup
+
+samtools view -h Nivo.bam | grep -v -f ../comparebarcode/barcodes_regex.txt > filtered_Nivo.sam

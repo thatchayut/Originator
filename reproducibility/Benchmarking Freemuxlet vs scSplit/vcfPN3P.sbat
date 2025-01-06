@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name=vcfgenPN3P
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=30:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+module purge
+eval "$(conda shell.bash hook)"
+conda activate originator
+cd /nfs/dcmb-lgarmire/johntao/originator
+freebayes -f ./hg19fa/hg19.fa -iXu -C 2 -q 1 /nfs/dcmb-lgarmire/yhdu/hongkong/ALIGNMENT/PN3P/PN3P.bam > ./PN3P.vcf

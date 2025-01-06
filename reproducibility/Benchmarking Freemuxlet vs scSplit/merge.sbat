@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --job-name=merge
+#SBATCH --account=lgarmire99
+#SBATCH --partition=standard
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=140g
+#SBATCH --time=5:00:00
+#SBATCH --mail-type=END
+#SBATCH --output=./%x-%j
+
+module load Bioinformatics 
+module load samtools
+samtools merge merged_filtered.bam filtered_Ipi.bam filtered_Nivo.bam
