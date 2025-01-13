@@ -9,12 +9,15 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Remotes:
+  cran::Matrix@1.6-5,
+  cran::Seurat@4.3.0
 Depends:
   R (>= 2.10),
   dplyr (>= 1.1.4)
 Imports:
-  Matrix (== 1.6-5),
-  Seurat (== 4.3.0),
+  Matrix,
+  Seurat,
   harmony (>= 1.2.0),
   readr (>= 2.1.5),
   pheatmap (>= 1.0.12),
