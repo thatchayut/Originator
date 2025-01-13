@@ -5,7 +5,7 @@ Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood cont
 ![alt text](image/originator_pipeline.png)
 **Illustration of Originator framework** The input data are the scRNA-Seq experiment on tissue sections. (1) data preprocessing and cell type annotation. (2) separating barcoded cells into different origins by blood vs tissue residents context and optionally by inferred genotype information. (3) using the results in steps (1) and (2) to dissect tissue heterogeneity. (4) the functional downstream analyses with respect to cells’ origins.
 
-Please check **[our latest preprint]([https://pmc.ncbi.nlm.nih.gov/articles/PMC11014553/](https://www.biorxiv.org/content/10.1101/2024.04.04.588144v3)**
+Please check [our latest preprint]([https://pmc.ncbi.nlm.nih.gov/articles/PMC11014553/](https://www.biorxiv.org/content/10.1101/2024.04.04.588144v3)
 
 # Installation
 Install dependencies
