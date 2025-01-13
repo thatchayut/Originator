@@ -26,6 +26,8 @@ remotes::install_github("lanagarmire/Originator/Originator/")
 ## Contributors
 - [Thatchayut Unjitwattana](https://github.com/thatchayut) (thatchau@umich.edu)
 - Qianhui Huang (qhhuang@umich.edu)
+- [Yiwen Yang](https://github.com/remisiki) (yangiwen@umich.edu)
+- Leyang Tao (johntao@umich.edu)
 - [Youqi Yang](https://github.com/youqiy) (youqi@umich.edu)
 - [Mengtian Zhou](https://github.com/mengtzhou) (mtzhouzz@umich.edu)
 - [Yuheng Du](https://github.com/yhdu36) (yhdu@umich.edu)
