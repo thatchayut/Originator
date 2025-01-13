@@ -8,17 +8,37 @@ Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood cont
 Please check **[our latest preprint](https://www.biorxiv.org/content/10.1101/2024.04.04.588144v3)**
 
 # Installation
-Install dependencies
-```R
-install.packages("tidyr")
-install.packages('Seurat')
-install.packages("RColorBrewer")
-install.packages("matrixStats")
+
+## Install using `renv`
+
+We recommend installing Originator using [renv](https://rstudio.github.io/renv/articles/renv.html), an R package virtual environment manager that simplifies installing packages from various sources and maintaining consistent dependencies.
+
+Install `renv` package manager and activate the environment
+
+```r
+install.packages("renv")
+renv::init()
+renv::activate()
 ```
-Install Originator
-```R
-remotes::install_github("lanagarmire/Originator/Originator/")
+
+Restart your R session and install Originator
+
+```r
+renv::install("lanagarmire/Originator/Originator/")
 ```
+
+## Install using `devtools`
+
+Alternatively, install Originator using `devtools` or `remotes`. Make sure Seurat V4 is installed before proceeding, you may follow the instructions [here](https://satijalab.org/seurat/articles/install_v5.html#install-seurat-v4).
+
+```r
+install.packages("devtools")
+devtools::install_github("lanagarmire/Originator/Originator/")
+# Or use remotes
+# install.packages("remotes")
+# remotes::install_github("lanagarmire/Originator/Originator/")
+```
+
 # Tutorial
 - [How to run Originator?](Originator/vignettes/Example.Rmd)
 - [Perform blood and tissue-resident immune cell identification using Originator](tutorial/Originator_tutorial.md)
