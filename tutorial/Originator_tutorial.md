@@ -113,6 +113,9 @@ as follows. We will use NK cell as an example.
 
 ``` r
 #### Map "T-cell" in data_query$final_annotation data to "T-cell" as a unified cell type to map with the reference. Unified cell type name will be added to `unified_celltype` column
+
+#### Please follow this format: 
+####    celltype_map_query <- list( `<query_celltype>` = "<unified_celltype>")
 celltype_map_query <- list(
   `T-cell` = "T-cell"
 )
@@ -120,6 +123,9 @@ celltype_map_query <- list(
 data_query <- mapCellTypes(data_query, "final_annotation", celltype_map_query)
 
 #### Map "T-cell" in wholeblood_reference$level1_annotation data to "T-cell" as a unified cell type to map with the query. Unified cell type name will be added to `unified_celltype` column
+
+#### Please follow this format: 
+####    celltype_map_query <- list( `<reference_celltype>` = "<unified_celltype>")
 celltype_map_ref <- list(
   `T-cell` = "T-cell"
 )
@@ -191,26 +197,26 @@ integrated_data <- integrateBloodRef(wholeblood_reference, data_query)
     ## To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
     ## This message will be shown once per session
 
-    ## 15:53:30 UMAP embedding parameters a = 0.9922 b = 1.112
+    ## 16:26:15 UMAP embedding parameters a = 0.9922 b = 1.112
 
-    ## 15:53:30 Read 63144 rows and found 30 numeric columns
+    ## 16:26:15 Read 63144 rows and found 30 numeric columns
 
-    ## 15:53:30 Using Annoy for neighbor search, n_neighbors = 30
+    ## 16:26:15 Using Annoy for neighbor search, n_neighbors = 30
 
-    ## 15:53:30 Building Annoy index with metric = cosine, n_trees = 50
+    ## 16:26:15 Building Annoy index with metric = cosine, n_trees = 50
 
     ## 0%   10   20   30   40   50   60   70   80   90   100%
 
     ## [----|----|----|----|----|----|----|----|----|----|
 
     ## **************************************************|
-    ## 15:53:38 Writing NN index file to temp file /tmp/RtmpEqYQdE/file810de27ad3761
-    ## 15:53:38 Searching Annoy index using 1 thread, search_k = 3000
-    ## 15:54:03 Annoy recall = 100%
-    ## 15:54:04 Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
-    ## 15:54:07 Initializing from normalized Laplacian + noise (using irlba)
-    ## 15:54:11 Commencing optimization for 200 epochs, with 2896490 positive edges
-    ## 15:55:30 Optimization finished
+    ## 16:26:23 Writing NN index file to temp file /tmp/RtmpYkVfg6/file8799875dd86af
+    ## 16:26:23 Searching Annoy index using 1 thread, search_k = 3000
+    ## 16:26:48 Annoy recall = 100%
+    ## 16:26:49 Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
+    ## 16:26:52 Initializing from normalized Laplacian + noise (using irlba)
+    ## 16:26:56 Commencing optimization for 200 epochs, with 2896490 positive edges
+    ## 16:28:18 Optimization finished
 
 Run *Originator* to identify blood and tissue-resident immune cell for
 your cell type of interest (in this case is T-cell). The output object
