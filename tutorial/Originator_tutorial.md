@@ -1,53 +1,58 @@
-Blood and Tissue-resident Identification using Originator
----------------------------------------------------------
+Originator tutorial
+================
+2025-01-13
 
-Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to blood contamination in sample preparation. In this tutorial, we'll use the demo data containing the mixture of blood and tissue-resident immune cells to show that Originator can successfully separate this mixture into blood and tissue-resident immune cells.
+# Blood and Tissue-resident Identification using Originator
 
-### Install the package
+Single-cell RNA sequencing (scRNA-Seq) data from tissues are prone to
+blood contamination in sample preparation. In this tutorial, we’ll use
+the demo data containing the mixture of blood and tissue-resident immune
+cells to show that Originator can successfully separate this mixture
+into blood and tissue-resident immune cells.
+
+## Install Originator
 
 ``` r
-remotes::install_github("lanagarmire/Originator/Originator/")
+# Install Originator if you haven't done already.
+# remotes::install_github("lanagarmire/Originator/Originator/")
 ```
 
-    ## Skipping install of 'originator' from a github remote, the SHA1 (adc74487) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
+## Prepare input data for Originator
 
-### Prepare input data for Originator
+Originator requires the user to provide: 1. Seurat object for query data
+2. Seurat object of the reference data
 
-Originator requires the user to provide:
-
-1.  Seurat object for query data
-2.  Seurat object containing the integration of query and reference data.
-
-Toy datasets can be downloaded from: https://figshare.com/articles/dataset/Artificially_mixing_blood_and_tissue_scRNA-seq_data/25487980
+Toy datasets can be downloaded from:
+<https://figshare.com/articles/dataset/Artificially_mixing_blood_and_tissue_scRNA-seq_data/25487980>
 
 ``` r
-library(originator)
+library(Originator)
+```
+
+    ## Loading required package: dplyr
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
 library(Seurat)
 ```
 
-    ## Warning: package 'Seurat' was built under R version 4.3.3
-
-    ## Loading required package: SeuratObject
-
-    ## Warning: package 'SeuratObject' was built under R version 4.3.3
-
-    ## Loading required package: sp
-
-    ## Warning: package 'sp' was built under R version 4.3.3
-
-    ## 
-    ## Attaching package: 'SeuratObject'
-
-    ## The following object is masked from 'package:base':
-    ## 
-    ##     intersect
+    ## Attaching SeuratObject
 
 ``` r
 ###### Prepare a query data
-data_TB_annotation <- readRDS("./your_workspace/demo_query.rds")
+data_query <- readRDS("./demo_query.rds")
 
-head(data_TB_annotation@meta.data)
+head(data_query@meta.data)
 ```
 
     ##                         orig.ident nCount_RNA nFeature_RNA percent.mt
@@ -87,505 +92,258 @@ head(data_TB_annotation@meta.data)
     ## M1_AAACCCAGTGGACTAG-1_1               9      Immune             Tissue
 
 ``` r
-DimPlot(data_TB_annotation, group.by = "final_annotation", split.by = "origin_groundtruth")
+DimPlot(data_query, group.by = "final_annotation", split.by = "origin_groundtruth")
 ```
 
-![UMAP query data](../image/plots/load_query-1.png)
-
-The next step will require the integrated data of the query and the reference data. As this step may require high computational cost depending on your reference data of interest, we've provided a toy integrated data set that contains the integrated data of the toy query data and the blood scRNA-seq reference data provided by Tabula Sapiens (https://www.science.org/doi/10.1126/science.abl4896).
+![](Originator_tutorial_files/figure-gfm/visualize_TB_groundtruth-1.png)<!-- -->
+The next step will require the integrated data of the query and the
+reference data. As this step may require high computational cost
+depending on your reference data of interest, we’ve provided a toy
+integrated data set that contains the integrated data of the toy query
+data and the blood scRNA-seq reference data provided by Tabula Sapiens
+(<https://www.science.org/doi/10.1126/science.abl4896>)
 
 ``` r
-###### Prepare the integrated of the query data and the reference data
-# This step can be done using data integration step provided by Seurat. 
-wholeblood.integrated <- readRDS("./your_workspace/demo_wholeblood_query_integrated.rds")
-
-head(wholeblood.integrated@meta.data)
+wholeblood_reference <- readRDS("./wholeblood_reference.rds")
 ```
 
-    ##                                        assay_ontology_term_id donor_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1            EFO:0009922     TSP7
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1            EFO:0009922     TSP7
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1            EFO:0009922     TSP7
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1            EFO:0009922     TSP7
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1            EFO:0009922     TSP7
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1            EFO:0009922     TSP7
-    ##                                        anatomical_information nCounts_RNA_UMIs
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                    nan             4799
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                    nan            12910
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                    nan            11178
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                    nan             5996
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                    nan             8265
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                    nan             6222
-    ##                                        nFeaturess_RNA
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1            212
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1            303
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1           2670
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1           2459
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1           2631
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1            310
-    ##                                                                                cell_ontology_class
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                      cd4-positive, alpha-beta memory t cell
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1 cd8-positive, alpha-beta cytokine secreting effector t cell
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                                          classical monocyte
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ##                                                                                    free_annotation
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                      cd4-positive, alpha-beta memory t cell
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1 cd8-positive, alpha-beta cytokine secreting effector t cell
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                                          classical monocyte
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ##                                        manually_annotated compartment
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1               TRUE      immune
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1               TRUE      immune
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1               TRUE      immune
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1               TRUE      immune
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1               TRUE      immune
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1               TRUE      immune
-    ##                                        sex_ontology_term_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1         PATO:0000383
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1         PATO:0000383
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1         PATO:0000383
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1         PATO:0000383
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1         PATO:0000383
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1         PATO:0000383
-    ##                                        disease_ontology_term_id is_primary_data
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1             PATO:0000461           FALSE
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1             PATO:0000461           FALSE
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1             PATO:0000461           FALSE
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1             PATO:0000461           FALSE
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1             PATO:0000461           FALSE
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1             PATO:0000461           FALSE
-    ##                                        organism_ontology_term_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1            NCBITaxon:9606
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1            NCBITaxon:9606
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1            NCBITaxon:9606
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1            NCBITaxon:9606
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1            NCBITaxon:9606
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1            NCBITaxon:9606
-    ##                                        suspension_type
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1            cell
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1            cell
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1            cell
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1            cell
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1            cell
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1            cell
-    ##                                        cell_type_ontology_term_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                 CL:0000232
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                 CL:0000232
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                 CL:0000897
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                 CL:0000908
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                 CL:0000860
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                 CL:0000232
-    ##                                        tissue_ontology_term_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1          UBERON:0000178
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1          UBERON:0000178
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1          UBERON:0000178
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1          UBERON:0000178
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1          UBERON:0000178
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1          UBERON:0000178
-    ##                                        development_stage_ontology_term_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                     HsapDv:0000163
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                     HsapDv:0000163
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                     HsapDv:0000163
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                     HsapDv:0000163
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                     HsapDv:0000163
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                     HsapDv:0000163
-    ##                                        self_reported_ethnicity_ontology_term_id
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                           HANCESTRO:0005
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                           HANCESTRO:0005
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                           HANCESTRO:0005
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                           HANCESTRO:0005
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                           HANCESTRO:0005
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                           HANCESTRO:0005
-    ##                                        tissue_type
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1      tissue
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1      tissue
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1      tissue
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1      tissue
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1      tissue
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1      tissue
-    ##                                                                                          cell_type
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                      CD4-positive, alpha-beta memory T cell
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1 CD8-positive, alpha-beta cytokine secreting effector T cell
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                                          classical monocyte
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                                                 erythrocyte
-    ##                                            assay disease     organism    sex
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1 10x 3' v3  normal Homo sapiens female
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1 10x 3' v3  normal Homo sapiens female
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1 10x 3' v3  normal Homo sapiens female
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1 10x 3' v3  normal Homo sapiens female
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1 10x 3' v3  normal Homo sapiens female
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1 10x 3' v3  normal Homo sapiens female
-    ##                                        tissue self_reported_ethnicity
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1  blood                European
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1  blood                European
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1  blood                European
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1  blood                European
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1  blood                European
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1  blood                European
-    ##                                              development_stage
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1 69-year-old human stage
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1 69-year-old human stage
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1 69-year-old human stage
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1 69-year-old human stage
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1 69-year-old human stage
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1 69-year-old human stage
-    ##                                        observation_joinid level1_annotation
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1         tJ2&+zdlob       erythrocyte
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1         Ylb|HRe+5D       erythrocyte
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1         7W>QVAeTpm            T-cell
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1         `v_J75rtzh            T-cell
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1         TFr5sEI>X2          monocyte
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1         ^XO4N8~r$F       erythrocyte
-    ##                                        nCount_RNA nFeature_RNA orig.ident
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1       4837          301       <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1      13088          448       <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1      10997         2580       <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1       5724         2375       <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1       8097         2575       <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1       6750          563       <NA>
-    ##                                        percent.mt integrated_snn_res.0.5
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1         NA                   <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1         NA                   <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1         NA                   <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1         NA                   <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1         NA                   <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1         NA                   <NA>
-    ##                                        seurat_clusters singleR_annotation
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1               0               <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1               0               <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1               3               <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1               5               <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1               1               <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1               0               <NA>
-    ##                                        integrated_snn_res.0.6
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                   <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                   <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                   <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                   <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                   <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                   <NA>
-    ##                                        singleR_annotation_immune
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                      <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                      <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                      <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                      <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                      <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                      <NA>
-    ##                                        final_annotation RNA_snn_res.0.6
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1             <NA>            <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1             <NA>            <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1             <NA>            <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1             <NA>            <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1             <NA>            <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1             <NA>            <NA>
-    ##                                        origin_groundtruth
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1               <NA>
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1               <NA>
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1               <NA>
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1               <NA>
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1               <NA>
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1               <NA>
-    ##                                        integrated_snn_res.0.4
-    ## AAACCCAAGCCGTCGT_TSP7_Blood_NA_10X_1_1                      0
-    ## AAACCCACAGAATTCC_TSP7_Blood_NA_10X_1_1                      0
-    ## AAACCCAGTACGTTCA_TSP7_Blood_NA_10X_1_1                      3
-    ## AAACCCAGTCCCTCAT_TSP7_Blood_NA_10X_1_1                      5
-    ## AAACCCAGTCTTCTAT_TSP7_Blood_NA_10X_1_1                      1
-    ## AAACCCAGTGGCAACA_TSP7_Blood_NA_10X_1_1                      0
-
-Originator requires the integrated dataset to explicitly specify *Ref <celltype>* and *Query <celltype>* in the metadata column *annotation\_query\_ref*. We'll prepare the integrated dataset to meet the criteria.
+In order to ensure that cell type in query and reference data have the
+same name, you can use mapCellTypes() function to prepare cell type name
+as follows. We will use NK cell as an example.
 
 ``` r
-# Define query and reference on common immune cell types
-## Query side: T-cell, B-cell, Monocyte
-## Reference side: T-cell, B cell, monocyte
+#### Map "T-cell" in data_query$final_annotation data to "T-cell" as a unified cell type to map with the reference. Unified cell type name will be added to `unified_celltype` column
+celltype_map_query <- list(
+  `T-cell` = "T-cell"
+)
 
-list_common_immune_query <- c("T-cell", "B-cell", "Monocyte")
-list_common_immune_reference <- c("T-cell", "B cell", "monocyte")
+data_query <- mapCellTypes(data_query, "final_annotation", celltype_map_query)
 
+#### Map "T-cell" in wholeblood_reference$level1_annotation data to "T-cell" as a unified cell type to map with the query. Unified cell type name will be added to `unified_celltype` column
+celltype_map_ref <- list(
+  `T-cell` = "T-cell"
+)
 
-wholeblood.integrated_meta <- wholeblood.integrated@meta.data
-
-wholeblood.integrated_meta$annotation_query_ref <- rep(NA, nrow(wholeblood.integrated_meta))
-
-wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$final_annotation == "T-cell"] <- "Query T-cell"
-wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$final_annotation == "B-cell"] <- "Query B-cell"
-wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$final_annotation == "Monocyte"] <- "Query monocyte"
-
-wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$level1_annotation == "T-cell"] <- "Ref T-cell"
-wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$level1_annotation == "B cell"] <- "Ref B-cell"
-wholeblood.integrated_meta$annotation_query_ref[wholeblood.integrated_meta$level1_annotation == "monocyte"] <- "Ref monocyte"
-
-wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$final_annotation == "T-cell"] <- "Query"
-wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$final_annotation == "B-cell"] <- "Query"
-wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$final_annotation == "Monocyte"] <- "Query"
-
-wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$level1_annotation == "T-cell"] <- "Ref"
-wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$level1_annotation == "B cell"] <- "Ref"
-wholeblood.integrated_meta$orig.ident[wholeblood.integrated_meta$level1_annotation == "monocyte"] <- "Ref"
-
-wholeblood.integrated.common.immune <- wholeblood.integrated
-
-wholeblood.integrated.common.immune@meta.data <-  wholeblood.integrated_meta
-
-list_annotation_query_ref <- unlist(unique(wholeblood.integrated.common.immune$annotation_query_ref))
-list_annotation_query_ref <-  list_annotation_query_ref[is.na(list_annotation_query_ref) == FALSE]
-
-# Subset to get only cell types of interests
-wholeblood.integrated.common.immune <- subset(wholeblood.integrated.common.immune,
-                                              subset = annotation_query_ref %in% list_annotation_query_ref)
+wholeblood_reference <- mapCellTypes(wholeblood_reference, "level1_annotation", celltype_map_ref)
 ```
 
-    ## Warning: Removing 23243 cells missing data for vars requested
-
-### Perform blood and tissue-immune cell identification using Originator
+Since we already ensured that T-cells in query and reference have the
+same name, we can perform data integration of query and reference data.
 
 ``` r
-tb_annotation_tcell <- originator(data = wholeblood.integrated.common.immune, query_cell_type = "T-cell", plot = TRUE, output_dir = "./")
+#### Use harmony to integrate query and reference
+integrated_data <- integrateBloodRef(wholeblood_reference, data_query)
 ```
 
-    ## [1] "#### Generate UMAP plot comparing cells from query and reference"
+    ## Centering and scaling data matrix
 
-    ## Warning in RColorBrewer::brewer.pal(n = 14, name = "RdYlBu"): n too large, allowed maximum for palette RdYlBu is 11
-    ## Returning the palette you asked for with that many colors
+    ## PC_ 1 
+    ## Positive:  TMSB4X, MALAT1, PFN1, ACTG1, B2M, ACTB, ARHGDIB, TPM3, CORO1A, LAPTM5 
+    ##     RAP1B, PPP1CA, ITM2B, ATP5F1A, BIN2, TAGLN2, DUSP1, DNAJC8, CCND3, CYTB 
+    ##     YWHAQ, ITGA4, TSC22D3, CD74, HERPUD1, NORAD, CXCR4, DOK2, GIMAP4, DBNL 
+    ## Negative:  ALAS2, CA1, SNCA, AHSP, GMPR, SELENBP1, HBD, SLC25A39, HBB, TRIM58 
+    ##     HBA2, BPGM, DMTN, PDZK1IP1, HBM, GLRX5, STRADB, FAM210B, FECH, SLC4A1 
+    ##     EPB42, BNIP3L, SLC25A37, DCAF12, GYPC, MXI1, BCL2L1, TENT5C, FBXO7, GSPT1 
+    ## PC_ 2 
+    ## Positive:  RGS18, OAZ1, LAPTM5, DUSP1, RTN3, ITM2B, NFE2, GLUL, ACTN1, MAP1LC3B 
+    ##     ACTB, GPX1, SLC25A37, R3HDM4, STOM, NPL, SEC14L1, SELPLG, LRP10, FERMT3 
+    ##     TSC22D3, SNX3, COX1, MFSD1, H2AC6, ARHGDIB, CD36, MAP2K3, ECE1, B2M 
+    ## Negative:  PRDX2, UBB, NAE1, ACP1, CREB3L4, MAGED2, LCK, ATIC, C12orf75, GOT1 
+    ##     IL32, ST13, GUK1, TRIP13, ACOT7, NTHL1, PDZD11, TRIAP1, SEPTIN11, PSMD2 
+    ##     AHSA1, ITM2A, TRUB2, DPCD, TRBC1, IFRD2, SPINT2, GSPT1, STRAP, MRPS9 
+    ## PC_ 3 
+    ## Positive:  CLU, GNG11, LMNA, CTTN, TPM1, BLVRB, TUBB1, GP9, TMEM40, PF4 
+    ##     PGRMC1, CAVIN2, CD9, CMTM5, ITGA2B, F13A1, TSC22D1, MTURN, TREML1, LTBP1 
+    ##     MPIG6B, PPBP, ETFA, SPARC, SPINT2, CREG1, ACRBP, CTSA, ITGB3, ANO6 
+    ## Negative:  CXCR4, CD69, TRAC, IL32, B2M, IL7R, MALAT1, LCK, SPOCK2, CORO1A 
+    ##     CCR7, TRBC1, BIN1, TSC22D3, SKAP1, RORA, TRAT1, ITK, DUSP1, ARHGDIB 
+    ##     DUSP2, ZAP70, MYLIP, BIRC3, CD79B, CD96, PTPN4, CTSW, PRF1, MS4A1 
+    ## PC_ 4 
+    ## Positive:  GNLY, CTSW, PRF1, GZMB, FGFBP2, CD226, PIP4K2A, H1-2, COX1, CYTB 
+    ##     DUSP2, CD69, PPBP, TUBB1, F2R, SKAP1, CAVIN2, PF4, PTPN4, RORA 
+    ##     CD96, GP9, ITGA2B, ZAP70, TREML1, GZMH, CMTM5, SH2D1B, CXCR4, MPIG6B 
+    ## Negative:  CREB3L4, RTN3, SPINT2, GOT1, TRIP13, CD59, DPCD, LMNA, RAB18, EXOSC4 
+    ##     GSN, PSMD2, PDZD11, SLC40A1, ACTN1, METTL1, CDC123, BLVRB, TUBB6, BYSL 
+    ##     GRB10, CD82, FAM241B, POR, TPM1, NTHL1, OAZ2, OAZ1, TOB1, FH 
+    ## PC_ 5 
+    ## Positive:  COX1, CD36, BLVRB, CREG1, SHTN1, GPX1, CYTB, STAB1, DOK2, GRK3 
+    ##     ITGA4, ATP5F1A, OAS1, AP1S2, SPECC1, THBS1, CPNE8, NCOA4, STMP1, YBX3 
+    ##     P2RX7, WNK1, SLC66A3, NISCH, NPL, FBXO7, MYG1, BNIP3L, MFSD1, GLB1 
+    ## Negative:  GP9, CMTM5, GNG11, TMEM40, TUBB1, CTTN, PF4, CAVIN2, MPIG6B, PDLIM1 
+    ##     TREML1, PTCRA, H2AC6, ITGA2B, CD9, TUBA4A, ITGB3, ESAM, GRAP2, LTBP1 
+    ##     ACTN1, ACRBP, SH3BGRL2, PF4V1, TSC22D1, TPM1, CLEC1B, LRP10, SELP, CAPN1-AS1
 
-    ## [1] "#### Extract UMAP embeddings 1-10"
-    ## [1] "min_umap1: -3.05807915050176"
-    ## [1] "max_umap1: -0.887539163414506"
-    ## [1] "min_umap2: -5.86495033458487"
-    ## [1] "max_umap2: 4.64015487476571"
-    ## [1] "#### Perform clustering"
-    ## [1] "#### Generate heatmaps of median distance plot between query and reference"
+    ## Transposing data matrix
+
+    ## Initializing state using k-means centroids initialization
+
+    ## Harmony 1/10
+
+    ## Harmony 2/10
+
+    ## Harmony converged after 2 iterations
+
+    ## Warning: Invalid name supplied, making object name syntactically valid. New
+    ## object name is Seurat..ProjectDim.RNA.harmony; see ?make.names for more details
+    ## on syntax validity
+
+    ## Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
+    ## To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
+    ## This message will be shown once per session
+
+    ## 15:53:30 UMAP embedding parameters a = 0.9922 b = 1.112
+
+    ## 15:53:30 Read 63144 rows and found 30 numeric columns
+
+    ## 15:53:30 Using Annoy for neighbor search, n_neighbors = 30
+
+    ## 15:53:30 Building Annoy index with metric = cosine, n_trees = 50
+
+    ## 0%   10   20   30   40   50   60   70   80   90   100%
+
+    ## [----|----|----|----|----|----|----|----|----|----|
+
+    ## **************************************************|
+    ## 15:53:38 Writing NN index file to temp file /tmp/RtmpEqYQdE/file810de27ad3761
+    ## 15:53:38 Searching Annoy index using 1 thread, search_k = 3000
+    ## 15:54:03 Annoy recall = 100%
+    ## 15:54:04 Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
+    ## 15:54:07 Initializing from normalized Laplacian + noise (using irlba)
+    ## 15:54:11 Commencing optimization for 200 epochs, with 2896490 positive edges
+    ## 15:55:30 Optimization finished
+
+Run *Originator* to identify blood and tissue-resident immune cell for
+your cell type of interest (in this case is T-cell). The output object
+and related files will be saved in your selected `output_path`. Check
+?classifyTissueBlood() for more details.
 
 ``` r
-tb_annotation_monocyte <- originator(data = wholeblood.integrated.common.immune, query_cell_type = "monocyte", plot = TRUE, output_dir = "./")
+output_path <- "./results"
+for (celltype in list("T-cell")) {
+  message(celltype)
+  classifyTissueBlood(integrated_data, celltype, output_dir = output_path)
+}
 ```
 
-    ## [1] "#### Generate UMAP plot comparing cells from query and reference"
+    ## T-cell
 
-    ## Warning in RColorBrewer::brewer.pal(n = 14, name = "RdYlBu"): n too large, allowed maximum for palette RdYlBu is 11
-    ## Returning the palette you asked for with that many colors
+    ## Path ./results already exists
 
-    ## [1] "#### Extract UMAP embeddings 1-10"
-    ## [1] "min_umap1: -3.19252147990849"
-    ## [1] "max_umap1: 6.87120442074153"
-    ## [1] "min_umap2: -6.01801601604239"
-    ## [1] "max_umap2: 5.89611724659188"
-    ## [1] "#### Perform clustering"
-    ## [1] "#### Generate heatmaps of median distance plot between query and reference"
+    ## Generate UMAP plot comparing cells from query and reference
+
+    ## Extract umap embeddings
+
+    ## min_x1: -2.29134004939206
+
+    ## max_x1: 7.8432889140784
+
+    ## min_x2: -1.49104226542743
+
+    ## max_x2: 9.39624387310711
+
+    ## Perform clustering
+
+    ## Generate heatmaps of median distance plot between query and reference
+
+Let’s check what’s the output look like. Originator ourput object will
+include reference data for your convenience. We can exclude the
+reference data to observe only the blood and tissue-resident immune cell
+of your interest.
 
 ``` r
-tb_annotation_bcell <- originator(data = wholeblood.integrated.common.immune, query_cell_type = "B-cell", plot = TRUE, output_dir = "./")
+data_T_cell_TBannotation <- readRDS("./results/T-cell_annotated.rds")
+
+# Subset to get only query data and exclude reference data
+data_T_cell_TBannotation <- subset(data_T_cell_TBannotation, subset = orig.ident == "Query")
 ```
 
-    ## [1] "#### Generate UMAP plot comparing cells from query and reference"
-
-    ## Warning in RColorBrewer::brewer.pal(n = 14, name = "RdYlBu"): n too large, allowed maximum for palette RdYlBu is 11
-    ## Returning the palette you asked for with that many colors
-
-    ## [1] "#### Extract UMAP embeddings 1-10"
-    ## [1] "min_umap1: -2.89676347095158"
-    ## [1] "max_umap1: 0.138637557443115"
-    ## [1] "min_umap2: -6.10460344508902"
-    ## [1] "max_umap2: 4.15647176548226"
-    ## [1] "#### Perform clustering"
-    ## [1] "#### Generate heatmaps of median distance plot between query and reference"
-
-Originator returns dataframe (N x 2; N = number of query samples): Blood and tissue-resident immune cell identification result is stored in *origin\_tb*. Row names are query sample IDs.
-
-If *plot* is set as TRUE, the following plots will be generated to the output directory specified in *output\_dir*.
-
-1.  UMAP plot comparing query and reference data
-2.  Heatmap of the distance between each cluster identified by Originator. The higher values imply a further distance from the reference data, inferring a tissue-resident immune cell cluster. On the other hand, the lower values imply a closer distance to reference data, inferring a blood immune cell cluster.
-
-##### UMAP plot comparing query and reference data of T-cells
-![UMAP plot comparing query and reference data of T-cells](../image/plots/T-cell_UMAP_annotation_query_ref.PNG)
-
-##### Heatmap of the distance between query and reference T-cells
-![Heatmap of the distance between query and reference T-cells](../image/plots/T-cell_UMAP_d10_query_ref_dist_median.PNG)
-
-##### UMAP plot comparing query and reference data of monocytes
-![UMAP plot comparing query and reference data of monocytes](../image/plots/monocyte_UMAP_annotation_query_ref.PNG)
-
-##### Heatmap of the distance between query and reference monocytes
-![Heatmap of the distance between query and reference monocytes](../image/plots/monocyte_UMAP_d10_query_ref_dist_median.PNG)
-
-##### UMAP plot comparing query and reference data of B-cells
-![UMAP plot comparing query and reference data of B-cells](../image/plots/B-cell_UMAP_annotation_query_ref.PNG)
-
-##### Heatmap of the distance between query and reference B-cells
-![Heatmap of the distance between query and reference B-cells](../image/plots/B-cell_UMAP_d10_query_ref_dist_median.PNG)
-
-Combine Orignator results from different immune cell types together.
-``` r
-##collect all data
-temp_meta <- NULL
-temp_meta <- rbind(temp_meta, tb_annotation_tcell)
-temp_meta <- rbind(temp_meta, tb_annotation_monocyte)
-temp_meta <- rbind(temp_meta, tb_annotation_bcell)
-```
-
-
-### Blood and tissue-resident immune cell assignment
-
-Add the Originator outputs back to the input Seurat object to perform further analysis.
+Let’s see Originator-identified blood and tissue-resident T-cells.
 
 ``` r
-data_TB_annotation_meta <- data_TB_annotation@meta.data
-
-### tissue and blood origin assignment
-data_TB_annotation_meta_1 <- data_TB_annotation_meta[!(row.names(data_TB_annotation_meta) %in% row.names(temp_meta)), ]
-data_TB_annotation_meta_1$TB_origin_wholeblood <- rep("Undetermined", dim(data_TB_annotation_meta_1)[1])
-
-data_TB_annotation_meta_1$TB_origin_wholeblood[data_TB_annotation_meta_1$compartment == "Non-immune"] <- "Tissue"
-
-data_TB_annotation_meta_2 <- data_TB_annotation_meta_1[, "TB_origin_wholeblood", drop = F]
-
-temp_meta <- temp_meta[, "origin_tb", drop = F]
-colnames(temp_meta) <- "TB_origin_wholeblood"
-
-temp_meta <- rbind(temp_meta, data_TB_annotation_meta_2)
-
-temp_meta <- temp_meta[row.names(data_TB_annotation_meta), , drop = F]
-
-data_TB_annotation[["TB_origin_wholeblood"]] <- temp_meta$TB_origin_wholeblood
+# Plot Originator results
+DimPlot(data_T_cell_TBannotation, group.by = "unified_celltype", split.by = "origin_tb")
 ```
 
-#### Comparing ground truth and Originator results
+![](Originator_tutorial_files/figure-gfm/visualization_originator_results-1.png)<!-- -->
 
-##### Visualization of all cell types
+We can see that the ground truth, as shown below, is highly consistent
+with Originator-identified blood and tissue-resident T-cells. This
+demonstrates that Originator can efficiently separate blood and
+tissue-resident T-cells in the artificially-mixed blood and
+tissue-resident immune cell data set.
 
 ``` r
-DimPlot(data_TB_annotation, group.by = "origin_groundtruth")
+DimPlot(data_T_cell_TBannotation, group.by = "unified_celltype", split.by = "origin_groundtruth")
 ```
 
-![UMAP of ground truth of all cell types](../image/plots/TB_visualization_all_1-1.png)
-
-``` r
-DimPlot(data_TB_annotation, group.by = "TB_origin_wholeblood")
-```
-
-![UMAP of Originator results of all cell types](../image/plots//TB_visualization_all_2-1.png)
-
-##### Visualization of T-cells
-
-``` r
-data_TB_annotation_tcell <- subset(data_TB_annotation, subset = final_annotation == "T-cell")
-
-DimPlot(data_TB_annotation_tcell, group.by = "origin_groundtruth")
-```
-
-![UMAP of ground truth of T-cells](../image/plots/TB_visualization_tcell-1.png)
-
-``` r
-DimPlot(data_TB_annotation_tcell, group.by = "TB_origin_wholeblood")
-```
-
-![UMAP of Originator results of T-cells](../image/plots/TB_visualization_tcell-2.png)
-
-##### Visualization of monocytes
-
-``` r
-data_TB_annotation_monocyte <- subset(data_TB_annotation, subset = final_annotation == "Monocyte")
-
-DimPlot(data_TB_annotation_monocyte, group.by = "origin_groundtruth")
-```
-
-![UMAP of ground truth of monocytes](../image/plots/TB_visualization_monocyte-1.png)
-
-``` r
-DimPlot(data_TB_annotation_monocyte, group.by = "TB_origin_wholeblood")
-```
-
-![UMAP of originator results of monocytes](../image/plots/TB_visualization_monocyte-2.png)
-
-##### Visualization of B-cells
-
-``` r
-data_TB_annotation_Bcell <- subset(data_TB_annotation, subset = final_annotation == "B-cell")
-
-DimPlot(data_TB_annotation_Bcell, group.by = "origin_groundtruth")
-```
-
-![UMAP of ground truth of B-cells](../image/plots/TB_visualization_bcell-1.png)
-
-``` r
-DimPlot(data_TB_annotation_Bcell, group.by = "TB_origin_wholeblood")
-```
-
-![UMAP of Originator results of B-cells](../image/plots/TB_visualization_bcell-2.png)
+![](Originator_tutorial_files/figure-gfm/visualization_groundtruth-1.png)<!-- -->
 
 ``` r
 sessionInfo()
 ```
 
-    ## R version 4.3.0 (2023-04-21 ucrt)
-    ## Platform: x86_64-w64-mingw32/x64 (64-bit)
-    ## Running under: Windows 10 x64 (build 19044)
+    ## R version 4.3.1 (2023-06-16)
+    ## Platform: x86_64-pc-linux-gnu (64-bit)
+    ## Running under: Red Hat Enterprise Linux 8.8 (Ootpa)
     ## 
     ## Matrix products: default
-    ## 
+    ## BLAS:   /sw/pkgs/arc/stacks/gcc/10.3.0/R/4.3.1/lib64/R/lib/libRblas.so 
+    ## LAPACK: /sw/pkgs/arc/stacks/gcc/10.3.0/R/4.3.1/lib64/R/lib/libRlapack.so;  LAPACK version 3.11.0
     ## 
     ## locale:
-    ## [1] LC_COLLATE=English_United States.utf8 
-    ## [2] LC_CTYPE=English_United States.utf8   
-    ## [3] LC_MONETARY=English_United States.utf8
-    ## [4] LC_NUMERIC=C                          
-    ## [5] LC_TIME=English_United States.utf8    
+    ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+    ##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+    ##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+    ##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+    ##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+    ## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
     ## 
-    ## time zone: America/New_York
-    ## tzcode source: internal
+    ## time zone: America/Detroit
+    ## tzcode source: system (glibc)
     ## 
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] Seurat_5.0.2          SeuratObject_5.0.1    sp_2.1-3             
-    ## [4] originator_0.0.0.9000
+    ## [1] SeuratObject_4.1.3    Seurat_4.3.0          Originator_0.0.0.9000
+    ## [4] dplyr_1.1.4          
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] deldir_2.0-4           pbapply_1.7-2          gridExtra_2.3         
-    ##   [4] remotes_2.5.0          rlang_1.1.3            magrittr_2.0.3        
-    ##   [7] RcppAnnoy_0.0.22       spatstat.geom_3.2-9    matrixStats_1.2.0     
-    ##  [10] ggridges_0.5.6         compiler_4.3.0         png_0.1-8             
-    ##  [13] vctrs_0.6.5            reshape2_1.4.4         stringr_1.5.1         
-    ##  [16] pkgconfig_2.0.3        fastmap_1.1.1          ellipsis_0.3.2        
-    ##  [19] labeling_0.4.3         utf8_1.2.4             promises_1.2.1        
-    ##  [22] rmarkdown_2.26         purrr_1.0.2            xfun_0.42             
-    ##  [25] jsonlite_1.8.8         goftest_1.2-3          highr_0.10            
-    ##  [28] later_1.3.2            spatstat.utils_3.0-4   irlba_2.3.5.1         
-    ##  [31] parallel_4.3.0         cluster_2.1.6          R6_2.5.1              
-    ##  [34] ica_1.0-3              spatstat.data_3.0-4    stringi_1.8.3         
-    ##  [37] RColorBrewer_1.1-3     reticulate_1.35.0      parallelly_1.37.1     
-    ##  [40] lmtest_0.9-40          scattermore_1.2        Rcpp_1.0.12           
-    ##  [43] knitr_1.45             tensor_1.5             future.apply_1.11.1   
-    ##  [46] zoo_1.8-12             sctransform_0.4.1      httpuv_1.6.14         
-    ##  [49] Matrix_1.6-5           splines_4.3.0          igraph_2.0.2          
-    ##  [52] tidyselect_1.2.1       abind_1.4-5            rstudioapi_0.16.0     
-    ##  [55] yaml_2.3.7             spatstat.random_3.2-3  spatstat.explore_3.2-6
-    ##  [58] codetools_0.2-19       miniUI_0.1.1.1         curl_5.2.1            
-    ##  [61] listenv_0.9.1          lattice_0.22-5         tibble_3.2.1          
-    ##  [64] plyr_1.8.9             withr_3.0.0            shiny_1.8.0           
-    ##  [67] ROCR_1.0-11            evaluate_0.23          Rtsne_0.17            
-    ##  [70] future_1.33.1          fastDummies_1.7.3      survival_3.5-8        
-    ##  [73] polyclip_1.10-6        fitdistrplus_1.1-11    pillar_1.9.0          
-    ##  [76] KernSmooth_2.23-22     plotly_4.10.4          generics_0.1.3        
-    ##  [79] RcppHNSW_0.6.0         ggplot2_3.5.0          munsell_0.5.0         
-    ##  [82] scales_1.3.0           globals_0.16.3         xtable_1.8-4          
-    ##  [85] glue_1.7.0             pheatmap_1.0.12        lazyeval_0.2.2        
-    ##  [88] tools_4.3.0            data.table_1.15.2      RSpectra_0.16-1       
-    ##  [91] RANN_2.6.1             leiden_0.4.3.1         dotCall64_1.1-1       
-    ##  [94] cowplot_1.1.3          grid_4.3.0             tidyr_1.3.1           
-    ##  [97] colorspace_2.1-0       nlme_3.1-164           patchwork_1.2.0       
-    ## [100] cli_3.6.2              spatstat.sparse_3.0-3  spam_2.10-0           
-    ## [103] fansi_1.0.6            viridisLite_0.4.2      dplyr_1.1.4           
-    ## [106] uwot_0.1.16            gtable_0.3.4           digest_0.6.35         
-    ## [109] progressr_0.14.0       ggrepel_0.9.5          farver_2.1.1          
-    ## [112] htmlwidgets_1.6.4      htmltools_0.5.7        lifecycle_1.0.4       
-    ## [115] httr_1.4.7             mime_0.12              MASS_7.3-60.0.1
+    ##   [1] deldir_2.0-2           pbapply_1.7-2          gridExtra_2.3         
+    ##   [4] rlang_1.1.3            magrittr_2.0.3         RcppAnnoy_0.0.22      
+    ##   [7] spatstat.geom_3.2-8    matrixStats_1.2.0      ggridges_0.5.6        
+    ##  [10] compiler_4.3.1         png_0.1-8              vctrs_0.6.5           
+    ##  [13] reshape2_1.4.4         stringr_1.5.1          pkgconfig_2.0.3       
+    ##  [16] fastmap_1.1.1          ellipsis_0.3.2         labeling_0.4.3        
+    ##  [19] utf8_1.2.4             promises_1.2.1         rmarkdown_2.25        
+    ##  [22] purrr_1.0.2            xfun_0.42              jsonlite_1.8.8        
+    ##  [25] goftest_1.2-3          highr_0.10             later_1.3.2           
+    ##  [28] spatstat.utils_3.0-4   irlba_2.3.5.1          parallel_4.3.1        
+    ##  [31] cluster_2.1.4          R6_2.5.1               ica_1.0-3             
+    ##  [34] stringi_1.8.3          RColorBrewer_1.1-3     spatstat.data_3.0-4   
+    ##  [37] reticulate_1.35.0      parallelly_1.37.0      lmtest_0.9-40         
+    ##  [40] scattermore_1.2        Rcpp_1.0.12            knitr_1.45            
+    ##  [43] tensor_1.5             future.apply_1.11.1    zoo_1.8-12            
+    ##  [46] sctransform_0.4.1      httpuv_1.6.14          Matrix_1.6-5          
+    ##  [49] splines_4.3.1          igraph_2.0.2           tidyselect_1.2.0      
+    ##  [52] rstudioapi_0.16.0      abind_1.4-5            yaml_2.3.8            
+    ##  [55] spatstat.random_3.2-2  codetools_0.2-19       miniUI_0.1.1.1        
+    ##  [58] spatstat.explore_3.2-6 listenv_0.9.1          lattice_0.21-8        
+    ##  [61] tibble_3.2.1           plyr_1.8.9             withr_3.0.0           
+    ##  [64] shiny_1.8.0            ROCR_1.0-11            evaluate_0.23         
+    ##  [67] Rtsne_0.17             future_1.33.1          survival_3.5-5        
+    ##  [70] polyclip_1.10-6        fitdistrplus_1.1-11    pillar_1.9.0          
+    ##  [73] KernSmooth_2.23-21     plotly_4.10.4          generics_0.1.3        
+    ##  [76] sp_2.1-3               ggplot2_3.4.4          munsell_0.5.0         
+    ##  [79] scales_1.3.0           globals_0.16.2         xtable_1.8-4          
+    ##  [82] RhpcBLASctl_0.23-42    glue_1.7.0             pheatmap_1.0.12       
+    ##  [85] lazyeval_0.2.2         tools_4.3.1            data.table_1.15.0     
+    ##  [88] RANN_2.6.1             dotCall64_1.1-1        leiden_0.4.3.1        
+    ##  [91] cowplot_1.1.3          grid_4.3.1             tidyr_1.3.1           
+    ##  [94] colorspace_2.1-0       nlme_3.1-162           patchwork_1.2.0       
+    ##  [97] cli_3.6.2              spatstat.sparse_3.0-3  spam_2.10-0           
+    ## [100] fansi_1.0.6            viridisLite_0.4.2      uwot_0.1.16           
+    ## [103] gtable_0.3.4           digest_0.6.34          progressr_0.14.0      
+    ## [106] ggrepel_0.9.5          farver_2.1.1           htmlwidgets_1.6.4     
+    ## [109] htmltools_0.5.7        lifecycle_1.0.4        httr_1.4.7            
+    ## [112] mime_0.12              harmony_1.2.3          MASS_7.3-60
