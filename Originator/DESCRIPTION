@@ -11,12 +11,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Remotes:
   cran::Matrix@1.6-5,
-  cran::Seurat@4.3.0
+  cran::Seurat@4.3.0,
+  cran::SeuratObject@4.1.3
 Depends:
   R (>= 2.10)
 Imports:
   Matrix,
   Seurat,
+  SeuratObject,
   harmony (>= 1.2.0),
   pheatmap (>= 1.0.12),
   matrixStats (>= 1.5.0)
