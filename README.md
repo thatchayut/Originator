@@ -40,7 +40,6 @@ devtools::install_github("lanagarmire/Originator/Originator/")
 ```
 
 # Tutorial
-- [How to run Originator?](Originator/vignettes/Example.Rmd)
 - [Perform blood and tissue-resident immune cell identification using Originator](tutorial/Originator_tutorial.md)
 - [(OPTIONAL) Perform maternal and fetal origin identification in placenta tissues](tutorial/Originator_optional_placenta.md)
 
